@@ -29,7 +29,7 @@ class IncidentBase(BaseModel):
     def check_not_empty(cls, v: str) -> str:
         if not v.strip():
             raise ValueError(
-                "O campo não pode conter apenas espaços em branco."
+                'O campo não pode conter apenas espaços em branco.'
             )
         return v.strip()
 

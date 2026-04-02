@@ -1,11 +1,15 @@
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Enum as SAEnum
-from sqlalchemy import String, Text, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import ForeignKey, String, Text, func
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 from app.schemas.incident import IncidentPriority, IncidentStatus
+
+if TYPE_CHECKING:
+    from app.models.users import User
 
 
 class Incident(Base):
@@ -13,15 +17,21 @@ class Incident(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(String(150), nullable=False)
-    description: Mapped[str] = mapped_column(Text(2000), nullable=False)
-    status: Mapped[SAEnum] = mapped_column(
-        SAEnum(IncidentStatus, names='IncidentStatusEnum'),
-        default=IncidentStatus.OPEN,
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[IncidentStatus] = mapped_column(
+        SAEnum(IncidentStatus, name='incident_status_enum'),
+        default=IncidentStatus.open,
         nullable=False,
     )
-    priority: Mapped[SAEnum] = mapped_column(
-        SAEnum(IncidentPriority, names='IncidentPriotityEnum'), nullable=False
+    priority: Mapped[IncidentPriority] = mapped_column(
+        SAEnum(IncidentPriority, name='incident_priority_enum'), nullable=False
     )
     created_at: Mapped[datetime] = mapped_column(
-        init=False, server_default=func.now(), nullable=False
+        server_default=func.now(), nullable=False
     )
+
+    creator_id: Mapped[int] = mapped_column(
+        ForeignKey('users.id'), nullable=False
+    )
+
+    creator: Mapped["User"] = relationship(back_populates="incidents")

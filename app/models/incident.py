@@ -1,24 +1,22 @@
-from sqlalchemy import String, Text, func
-from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase
+from sqlalchemy import String, Text, func, Enum as SAEnum
+from sqlalchemy.orm import Mapped, mapped_column
 from app.schemas.incident import IncidentStatus, IncidentPriority
-from enum import Enum
 from datetime import datetime
-
-class Base(DeclarativeBase):
-    pass
+from app.db.base import Base
 
 class Incident(Base):
-    __table__ = 'incidents'
+    __tablename__ = 'incidents'
 
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(String(150), nullable=False)
     description: Mapped[str] = mapped_column(Text(2000), nullable=False)
-    status: Mapped[Enum] = mapped_column(
-        Enum(IncidentStatus,names='IncidentStatusEnum'), 
+    status: Mapped[SAEnum] = mapped_column(
+        SAEnum(IncidentStatus,names='IncidentStatusEnum'),
+        default=IncidentStatus.OPEN, 
         nullable=False
     )
-    priority: Mapped[Enum] = mapped_column(
-        Enum(IncidentPriority,names='IncidentPriotityEnum'),
+    priority: Mapped[SAEnum] = mapped_column(
+        SAEnum(IncidentPriority,names='IncidentPriotityEnum'),
         nullable=False
     )
     created_at: Mapped[datetime] = mapped_column(

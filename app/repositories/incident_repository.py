@@ -10,7 +10,7 @@ from sqlalchemy.exc import (
 from fastapi import HTTPException
 
 async def create_incident(
-        id_user: int, 
+        user: CurrentUser, 
         db: DBSession,
         incident: IncidentCreate
 ) -> IncidentPublic:
@@ -19,7 +19,7 @@ async def create_incident(
         description = incident.description,
         priority = incident.priority,
         status = incident.status,
-        creator_id = id_user
+        creator = user
     )
 
     db.add(new_incident)

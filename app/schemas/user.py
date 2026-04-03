@@ -1,10 +1,16 @@
 import re
 from datetime import datetime
-
+from enum import Enum
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from validate_docbr import CPF
 
 cpf_validator = CPF()
+
+
+class UserRole(str, Enum):
+    CLIENT = "client"
+    TECHNICIAN = "technician"
+    SUPERVISOR = "supervisor"
 
 
 class UserCreate(BaseModel):
@@ -41,6 +47,7 @@ class UserCreate(BaseModel):
 class UserPublic(BaseModel):
     id: int
     email: EmailStr
+    is_active: bool
     creat_at: datetime
 
     model_config = ConfigDict(from_attributes=True)

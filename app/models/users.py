@@ -1,9 +1,8 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
-
-from sqlalchemy import Boolean, String, func
+from sqlalchemy import Boolean, String, func, Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
+from app.schemas.user import UserRole
 from app.db.base import Base
 
 if TYPE_CHECKING:
@@ -17,6 +16,11 @@ class User(Base):
     cpf: Mapped[str] = mapped_column(String(11), nullable=False, unique=True)
     email: Mapped[str] = mapped_column(String(200), unique=True, nullable=False)
     password: Mapped[str] = mapped_column(String(255), nullable=False)
+    role: Mapped[UserRole] = mapped_column(
+        SAEnum(UserRole, name='user-role-enum'), 
+        default=UserRole.CLIENT, 
+        nullable=False
+    )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(
         server_default=func.now(), nullable=False

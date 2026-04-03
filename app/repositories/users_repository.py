@@ -13,6 +13,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from app.api.v1.dependencies import get_db
 from app.models.users import User
 from app.schemas.user import UserCreate, UserPublic, UserLogin, Token
+from app.schemas.incident import FilterPage
 from app.core.security import hash_password, verify_password, create_token
 
 
@@ -63,6 +64,7 @@ async def create_user(
         return UserPublic(
             id=new_user.id,
             email=new_user.email,
+            is_active=new_user.is_active,
             creat_at=new_user.created_at
         )
     except IntegrityError as e:
@@ -87,3 +89,5 @@ async def login(user_data:OAuth2PasswordRequestForm, db:DBSession):
     token = Token(access_token=access_token, token_type='Bearer')
 
     return token
+
+    

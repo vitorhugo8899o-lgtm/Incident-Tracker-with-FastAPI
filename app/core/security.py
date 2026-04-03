@@ -1,9 +1,10 @@
+from datetime import datetime, timedelta, timezone
+
+import jwt
 from argon2 import PasswordHasher
 from argon2.exceptions import VerificationError
-from app.core.config import Settings
-import jwt
-from datetime import datetime, timezone, timedelta
 
+from app.core.config import Settings
 
 settings = Settings()
 

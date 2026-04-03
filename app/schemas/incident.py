@@ -39,10 +39,6 @@ class IncidentCreate(IncidentBase):
 
 
 class IncidentUpdate(BaseModel):
-    title: Optional[str] = Field(default=None, min_length=10, max_length=150)
-    description: Optional[str] = Field(
-        default=None, min_length=15, max_length=2000
-    )
     status: Optional[IncidentStatus] = None
     priority: Optional[IncidentPriority] = None
 
@@ -53,6 +49,7 @@ class IncidentPublic(IncidentBase):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
 
 class FilterPage(BaseModel):
     offset: int = Field(ge=0, default=0)

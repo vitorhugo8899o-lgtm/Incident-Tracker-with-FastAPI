@@ -1,8 +1,12 @@
 import re
 from datetime import datetime
 from enum import Enum
+from typing import Optional
+
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from validate_docbr import CPF
+
+from app.schemas.incident import IncidentPriority, IncidentStatus
 
 cpf_validator = CPF()
 
@@ -20,7 +24,8 @@ class UserCreate(BaseModel):
 
     @field_validator("password")
     def validate_password(cls, v: str):
-        if len(v) < 8:
+        num = 8
+        if len(v) < num:
             raise ValueError("Senha deve ter no mínimo 8 caracteres")
 
         if not re.search(r"[a-z]", v):
@@ -52,13 +57,15 @@ class UserPublic(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class UserLogin(BaseModel):
     email: EmailStr = Field(max_length=40)
     password: str
 
     @field_validator("password")
     def validate_password(cls, v: str):
-        if len(v) < 8:
+        num = 8
+        if len(v) < num:
             raise ValueError("Senha deve ter no mínimo 8 caracteres")
 
         if not re.search(r"[a-z]", v):
@@ -75,6 +82,16 @@ class UserLogin(BaseModel):
 
         return v
 
+
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+
+class UserIncidentUpdate(BaseModel):
+    title: Optional[str] = Field(default=None, min_length=10, max_length=150)
+    description: Optional[str] = Field(
+        default=None, min_length=15, max_length=2000
+    )
+    status: Optional[IncidentStatus] = None
+    priority: Optional[IncidentPriority] = None

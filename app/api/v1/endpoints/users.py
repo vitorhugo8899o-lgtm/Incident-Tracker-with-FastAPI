@@ -26,7 +26,7 @@ async def login_user(user:Form_data,db:db, response: Response):
 
     response.set_cookie(
         key='Login_info',
-        value=token,
+        value=token.access_token,
         max_age=60 * 60,
         httponly=True,
         secure=False,

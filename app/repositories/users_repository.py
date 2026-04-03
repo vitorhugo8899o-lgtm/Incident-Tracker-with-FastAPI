@@ -37,6 +37,9 @@ async def user_exists(user: UserCreate, db: DBSession) -> User | bool:
 
     if not result:
         return False
+    
+    if result.is_active is False:
+        return False
 
     return result
 
@@ -79,7 +82,7 @@ async def login(user_data:OAuth2PasswordRequestForm, db:DBSession):
     if not user or not verify_password(user_data.password, user.password):
         raise HTTPException(status_code=401, detail="Credenciais inválidas")
     
-    access_token = create_token(data={'sub': user.id})
+    access_token = create_token(data={'sub': str(user.id)})
 
     token = Token(access_token=access_token, token_type='Bearer')
 

@@ -53,3 +53,7 @@ class IncidentPublic(IncidentBase):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+class FilterPage(BaseModel):
+    offset: int = Field(ge=0, default=0)
+    limit: int = Field(ge=0, default=0)

@@ -64,6 +64,7 @@ async def create_user(
         return UserPublic(
             id=new_user.id,
             email=new_user.email,
+            is_active=new_user.is_active,
             creat_at=new_user.created_at
         )
     except IntegrityError as e:

@@ -1,12 +1,13 @@
 from typing import Annotated
 from http import HTTPStatus
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import Response
 from app.api.v1.dependencies import CurrentUser, DBSession
 from app.repositories.users_repository import create_user,login
 from app.schemas.user import UserCreate, UserPublic, Token
 from fastapi.security import OAuth2PasswordRequestForm
 from app.models.incident import Incident
+from app.models.users import User
 from sqlalchemy import select
 
 Form_data = Annotated[OAuth2PasswordRequestForm, Depends()]
@@ -41,3 +42,26 @@ async def get_all_user_incidents(current_user: CurrentUser, db: DBSession):
     incidents = result.scalars().all()
     
     return incidents
+
+@router_users.get('/users/{id_user}')
+async def get_user(id_user:int, db: DBSession):
+    stmt = select(User).where(User.id == id_user)
+
+    result = await db.execute(stmt)
+    user = result.scalar_one_or_none()
+
+    if user.role != 'supervisor':
+        raise HTTPException(
+            status_code=409,
+            detail='Você não possui permissão para realizar essa acão'
+        )
+
+    if user is None:
+        return 'Usuário não encontrado'
+    
+    return UserPublic(
+        id=user.id,
+        email=user.email,
+        is_active=user.is_active,
+        creat_at=user.created_at
+    )

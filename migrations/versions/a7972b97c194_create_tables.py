@@ -1,8 +1,8 @@
-"""create table users and incident
+"""create tables
 
-Revision ID: ab05bd66dd57
+Revision ID: a7972b97c194
 Revises: 
-Create Date: 2026-04-02 18:04:28.343894
+Create Date: 2026-04-03 15:33:14.773313
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'ab05bd66dd57'
+revision: str = 'a7972b97c194'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -26,6 +26,7 @@ def upgrade() -> None:
     sa.Column('cpf', sa.String(length=11), nullable=False),
     sa.Column('email', sa.String(length=200), nullable=False),
     sa.Column('password', sa.String(length=255), nullable=False),
+    sa.Column('role', sa.Enum('CLIENT', 'TECHNICIAN', 'SUPERVISOR', name='user-role-enum'), nullable=False),
     sa.Column('is_active', sa.Boolean(), nullable=False),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
     sa.PrimaryKeyConstraint('id'),
@@ -36,8 +37,8 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('title', sa.String(length=150), nullable=False),
     sa.Column('description', sa.Text(), nullable=False),
-    sa.Column('status', sa.Enum('open', 'in_progress', 'resolved', 'closed', name='incident_status_enum'), nullable=False),
-    sa.Column('priority', sa.Enum('low', 'medium', 'high', 'critical', name='incident_priority_enum'), nullable=False),
+    sa.Column('status', sa.Enum('open', 'in_progress', 'resolved', 'closed', name='incident-status-enum'), nullable=False),
+    sa.Column('priority', sa.Enum('low', 'medium', 'high', 'critical', name='incident-priority-enum'), nullable=False),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
     sa.Column('creator_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['creator_id'], ['users.id'], ),

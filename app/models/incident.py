@@ -1,8 +1,7 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Enum as SAEnum
-from sqlalchemy import ForeignKey, String, Text, func
+from sqlalchemy import ForeignKey, String, Text, func, Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -19,12 +18,12 @@ class Incident(Base):
     title: Mapped[str] = mapped_column(String(150), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
     status: Mapped[IncidentStatus] = mapped_column(
-        SAEnum(IncidentStatus, name='incident_status_enum'),
+        SAEnum(IncidentStatus, name='incident-status-enum'),
         default=IncidentStatus.open,
         nullable=False,
     )
     priority: Mapped[IncidentPriority] = mapped_column(
-        SAEnum(IncidentPriority, name='incident_priority_enum'), nullable=False
+        SAEnum(IncidentPriority, name='incident-priority-enum'), nullable=False
     )
     created_at: Mapped[datetime] = mapped_column(
         server_default=func.now(), nullable=False

@@ -6,8 +6,10 @@ from sqlalchemy.ext.asyncio import (
 
 from app.core.config import Settings
 
+settings = Settings()
+
 engine = create_async_engine(
-    Settings().DATABASE_URL,
+    settings.DATABASE_URL,
     echo=True,
     pool_timeout=30,
     pool_recycle=3600,

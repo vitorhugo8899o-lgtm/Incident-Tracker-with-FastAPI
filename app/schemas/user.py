@@ -44,3 +44,30 @@ class UserPublic(BaseModel):
     creat_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+class UserLogin(BaseModel):
+    email: EmailStr = Field(max_length=40)
+    password: str
+
+    @field_validator("password")
+    def validate_password(cls, v: str):
+        if len(v) < 8:
+            raise ValueError("Senha deve ter no mínimo 8 caracteres")
+
+        if not re.search(r"[a-z]", v):
+            raise ValueError("Deve conter letra minúscula")
+
+        if not re.search(r"[A-Z]", v):
+            raise ValueError("Deve conter letra maiúscula")
+
+        if not re.search(r"\d", v):
+            raise ValueError("Deve conter número")
+
+        if not re.search(r"[@$!%*?&]", v):
+            raise ValueError("Deve conter caractere especial")
+
+        return v
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str

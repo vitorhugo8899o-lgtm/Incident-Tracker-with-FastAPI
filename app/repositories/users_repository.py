@@ -1,26 +1,35 @@
 from typing import Annotated
-
 from fastapi import Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.exc import (
     IntegrityError,
     InvalidRequestError,
     OperationalError,
+    
 )
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
-
+from fastapi.security import OAuth2PasswordRequestForm
 from app.api.v1.dependencies import get_db
 from app.models.users import User
-from app.schemas.user import UserCreate, UserPublic
-from app.core.security import hash_password
+from app.schemas.user import UserCreate, UserPublic, UserLogin, Token
+from app.core.security import hash_password, verify_password, create_token
+
 
 DBSession = Annotated[AsyncSession, Depends(get_db)]
-
+Form_data = Annotated[OAuth2PasswordRequestForm, Depends()]
 
 async def user_exists(user: UserCreate, db: DBSession) -> User | bool:
-    stmt = select(User).where(
-    (User.email == user.email) | (User.cpf == user.cpf)
-)
+    """Busca o usuário no banco de dados, no caso de busca para login ele realiza uma busca somente para o email, caso contrário busca pelo email e cpf retornando o objeto do banco de dados ou um bool"""
+    
+    if type(user) == str:
+        stmt = select(User).where((User.email == user)) 
+
+
+    elif type(user) == UserCreate:
+        stmt = select(User).where(
+        (User.email == user.email) | (User.cpf == user.cpf)
+    )
 
     exist = await db.execute(stmt)
 
@@ -30,6 +39,7 @@ async def user_exists(user: UserCreate, db: DBSession) -> User | bool:
         return False
 
     return result
+
 
 
 async def create_user(
@@ -60,3 +70,17 @@ async def create_user(
         raise HTTPException(status_code=409, detail=f'{e}')
     except InvalidRequestError as e:
         raise HTTPException(status_code=409, detail=f'{e}')
+
+
+
+async def login(user_data:OAuth2PasswordRequestForm, db:DBSession):
+    user = await user_exists(user_data.username,db)
+
+    if not user or not verify_password(user_data.password, user.password):
+        raise HTTPException(status_code=401, detail="Credenciais inválidas")
+    
+    access_token = create_token(data={'sub': user.id})
+
+    token = Token(access_token=access_token, token_type='Bearer')
+
+    return token

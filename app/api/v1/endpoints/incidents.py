@@ -1,14 +1,11 @@
-from typing import Annotated
-
-from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from app.api.v1.dependencies import get_db
+from fastapi import APIRouter
+from app.repositories.incident_repository import create_incident
+from app.api.v1.dependencies import DBSession, CurrentUser
+from app.schemas.incident import IncidentCreate
 
 router_incident = APIRouter()
-db = Annotated[AsyncSession, Depends(get_db)]
 
 
-@router_incident.post('')
-async def incident_create():
-    pass
+@router_incident.post('/incidents')
+async def incident_create(current_user:CurrentUser, db: DBSession, incident: IncidentCreate):
+    return await create_incident(current_user.id,db,incident)

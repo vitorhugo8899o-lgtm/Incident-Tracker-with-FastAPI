@@ -2,24 +2,25 @@
 from http import HTTPStatus
 
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import StreamingResponse
 from sqlalchemy import select
 
 from app.api.v1.dependencies import CurrentUser, DBSession
 from app.models.users_models import User
 from app.repositories.technician_repositories import (
     disable_worker,
-    update_incident,
+    generate_metrics_chart,
     get_technician_metrics_data,
-    generate_metrics_chart
+    update_incident,
 )
 from app.repositories.users_repository import user_exists
 from app.schemas.incident_schema import IncidentUpdate
 from app.schemas.user_schema import UserPublic
-from fastapi.responses import StreamingResponse
+
 router_technician = APIRouter()
 
 
-@router_technician.put('/incident/{id_incident}')
+@router_technician.put('/incident/{id_incident}',status_code=HTTPStatus.OK)
 async def resolve_incident(
     user: CurrentUser,
     db: DBSession,
@@ -78,7 +79,7 @@ async def supervisor_get_user(
 async def technical_metrics_resolved(tech_id: int, db: DBSession):
     incidents = await get_technician_metrics_data(db, tech_id)
     chart_buffer = generate_metrics_chart(incidents)
-    
+
     if not chart_buffer:
         return {"detail": "Nenhum dado encontrado para o período."}
 

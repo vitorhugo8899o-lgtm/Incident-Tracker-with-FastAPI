@@ -1,22 +1,22 @@
+import io
+from datetime import datetime, timedelta
+
+import matplotlib.pyplot as plt
+import pandas as pd
 from fastapi import HTTPException
-from sqlalchemy import select, and_
+from sqlalchemy import and_, select
 from sqlalchemy.exc import (
     IntegrityError,
     InvalidRequestError,
     OperationalError,
 )
 from sqlalchemy.orm import joinedload
-from datetime import datetime, timedelta
+
 from app.api.v1.dependencies import CurrentUser, DBSession
 from app.models.incident_history_models import IncidentHistory
 from app.models.incident_models import Incident
 from app.models.users_models import User
 from app.schemas.incident_schema import IncidentStatus, IncidentUpdate
-import pandas as pd
-import matplotlib.pyplot as plt
-import io
-
-
 
 
 async def is_technician(techinician_id: int, db: DBSession) -> User:
@@ -44,7 +44,9 @@ async def update_incident(
     stmt = (
         select(Incident)
         .options(
-            joinedload(Incident.creator).load_only(User.id, User.email, User.role),
+            joinedload(Incident.creator).load_only(
+                User.id, User.email, User.role
+            ),
             joinedload(Incident.history)
         )
         .where(Incident.id == id_incident)
@@ -56,7 +58,7 @@ async def update_incident(
     if not incident:
         raise HTTPException(status_code=404, detail="Incidente não encontrado")
 
-    if incident.status in [IncidentStatus.resolved, IncidentStatus.closed]:
+    if incident.status in [IncidentStatus.resolved, IncidentStatus.closed]: #noqa
         raise HTTPException(status_code=400, detail="Chamado já finalizado")
 
     await is_technician(technician.id, db)
@@ -67,7 +69,9 @@ async def update_incident(
         incident.status = update_data.status
 
     if update_data.priority and update_data.priority != incident.priority:
-        changes.append(f"Prioridade: {incident.priority} -> {update_data.priority}")
+        changes.append(
+            f"Prioridade: {incident.priority} -> {update_data.priority}"
+        )
         incident.priority = update_data.priority
 
     if not changes and not update_data.comment:
@@ -78,7 +82,7 @@ async def update_incident(
     new_history = IncidentHistory(
         incident_id=incident.id,
         user_id=technician.id,
-        action=" | ".join(changes) if changes else "Atualização de dados/comentário",
+        action=" | ".join(changes) if changes else "Atualização de dados/comentário", #noqa
         comment=update_data.comment
     )
 
@@ -89,7 +93,10 @@ async def update_incident(
         await db.refresh(incident)
     except Exception as e:
         await db.rollback()
-        raise HTTPException(status_code=500, detail=f"Erro ao salvar alterações: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erro ao salvar alterações: {e}"
+        )
 
     return incident
 
@@ -119,7 +126,8 @@ async def disable_worker(id_user: int, db: DBSession) -> User | None:
     except InvalidRequestError as e:
         raise HTTPException(status_code=409, detail=f'{e}')
 
-async def get_history(id_incident:int,db:DBSession):
+
+async def get_history(id_incident: int, db: DBSession) -> IncidentHistory:
     stmt = select(Incident).where(Incident.id == id_incident)
 
     result = await db.execute(stmt)
@@ -128,20 +136,23 @@ async def get_history(id_incident:int,db:DBSession):
 
     if not incident:
         return None
-    
+
     return incident
+
 
 async def get_technician_metrics_data(db: DBSession, technician_id: int):
     thirty_days_ago = datetime.now() - timedelta(days=30)
-    
+
     stmt = select(Incident).where(
         and_(
             Incident.technician_id == technician_id,
-            Incident.status.in_([IncidentStatus.resolved, IncidentStatus.closed]),
+            Incident.status.in_(
+                [IncidentStatus.resolved, IncidentStatus.closed]
+            ),
             Incident.created_at >= thirty_days_ago
         )
     )
-    
+
     result = await db.execute(stmt)
     return result.scalars().all()
 
@@ -151,7 +162,7 @@ def generate_metrics_chart(incidents):
         return None
 
     data = [
-        {"priority": i.priority.value, "date": i.created_at.date()} 
+        {"priority": i.priority.value, "date": i.created_at.date()}
         for i in incidents
     ]
     df = pd.DataFrame(data)
@@ -160,11 +171,11 @@ def generate_metrics_chart(incidents):
 
     plt.figure(figsize=(10, 6))
     colors = {'high': 'red', 'medium': 'orange', 'low': 'green'}
-    
+
     current_colors = [colors.get(p, 'blue') for p in priority_counts.index]
-    
+
     priority_counts.plot(kind='bar', color=current_colors)
-    
+
     plt.title("Chamados Resolvidos nos Últimos 30 Dias por Prioridade")
     plt.xlabel("Prioridade")
     plt.ylabel("Quantidade")
@@ -174,6 +185,6 @@ def generate_metrics_chart(incidents):
     buf = io.BytesIO()
     plt.savefig(buf, format='png')
     buf.seek(0)
-    plt.close() 
-    
+    plt.close()
+
     return buf

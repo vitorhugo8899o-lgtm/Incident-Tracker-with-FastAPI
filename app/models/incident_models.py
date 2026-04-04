@@ -6,10 +6,10 @@ from sqlalchemy import ForeignKey, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
-from app.schemas.incident import IncidentPriority, IncidentStatus
+from app.schemas.custom_schema import IncidentPriority, IncidentStatus
 
 if TYPE_CHECKING:
-    from app.models.users import User
+    from app.models.users_models import User
 
 
 class Incident(Base):

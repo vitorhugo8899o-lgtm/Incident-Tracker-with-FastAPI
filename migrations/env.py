@@ -9,8 +9,8 @@ from alembic import context
 from alembic import context
 
 from app.db.base import Base
-from app.models.users import User
-from app.models.incident import Incident
+from app.models.users_models import User
+from app.models.incident_models import Incident
 from app.core.config import Settings
 
 # this is the Alembic Config object, which provides

@@ -6,10 +6,10 @@ from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
-from app.schemas.user import UserRole
+from app.schemas.custom_schema import UserRole
 
 if TYPE_CHECKING:
-    from app.models.incident import Incident
+    from app.models.incident_models import Incident
 
 
 class User(Base):

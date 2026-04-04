@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import Settings
 from app.db.session import AsyncSessionLocal
-from app.models.users import User
+from app.models.users_models import User
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/Login", auto_error=False) # noqa
 settings = Settings()

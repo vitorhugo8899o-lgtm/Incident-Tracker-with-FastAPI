@@ -1,22 +1,9 @@
 from datetime import datetime
-from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
-
-class IncidentStatus(str, Enum):
-    open = 'open'
-    in_progress = 'in_progress'
-    resolved = 'resolved'
-    closed = 'closed'
-
-
-class IncidentPriority(str, Enum):
-    low = 'low'
-    medium = 'medium'
-    high = 'high'
-    critical = 'critical'
+from app.schemas.custom_schema import IncidentPriority, IncidentStatus
 
 
 class IncidentBase(BaseModel):
@@ -51,6 +38,17 @@ class IncidentPublic(IncidentBase):
     model_config = ConfigDict(from_attributes=True)
 
 
+class CreatorSchema(BaseModel):
+    id: int
+    email: EmailStr
+    role: str
+
+
+class IncidentDeleteReturn(IncidentBase):
+    id: int
+    creator: CreatorSchema
+
+
 class FilterIncidents(BaseModel):
     offset: int = Field(ge=0, default=0)
     limit: int = Field(ge=0, default=0)
@@ -58,3 +56,7 @@ class FilterIncidents(BaseModel):
     priority: IncidentPriority | None = Field(default=None)
     created_at: datetime | None = Field(default=None)
     creator: int | None = Field(default=None)
+
+
+class IncidentList(BaseModel):
+    incidents: list[IncidentPublic]

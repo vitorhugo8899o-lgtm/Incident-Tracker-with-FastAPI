@@ -1,20 +1,13 @@
 import re
 from datetime import datetime
-from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from validate_docbr import CPF
 
-from app.schemas.incident import IncidentPriority, IncidentStatus
+from app.schemas.custom_schema import IncidentPriority, IncidentStatus
 
 cpf_validator = CPF()
-
-
-class UserRole(str, Enum):
-    CLIENT = "client"
-    TECHNICIAN = "technician"
-    SUPERVISOR = "supervisor"
 
 
 class UserCreate(BaseModel):
@@ -52,8 +45,9 @@ class UserCreate(BaseModel):
 class UserPublic(BaseModel):
     id: int
     email: EmailStr
+    cpf: str
     is_active: bool
-    creat_at: datetime
+    created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
 

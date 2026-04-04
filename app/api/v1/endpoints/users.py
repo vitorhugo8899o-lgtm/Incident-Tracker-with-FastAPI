@@ -1,23 +1,30 @@
 from http import HTTPStatus
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from fastapi.responses import Response
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 
 from app.api.v1.dependencies import CurrentUser, DBSession
-from app.models.incident import Incident
-from app.models.users import User
-from app.repositories.users_repository import create_user, login, disable_account
-from app.schemas.user import Token, UserCreate, UserPublic
+from app.models.incident_models import Incident
+from app.repositories.users_repository import (
+    create_user,
+    disable_account,
+    login,
+)
+from app.schemas.user_schema import Token, UserCreate, UserPublic
 
 Form_data = Annotated[OAuth2PasswordRequestForm, Depends()]
 router_users = APIRouter()
 
 
-@router_users.post('/users', status_code=HTTPStatus.CREATED)
-async def new_user(user: UserCreate, db: DBSession) -> UserPublic:
+@router_users.post(
+        '/users',
+        status_code=HTTPStatus.CREATED,
+        response_model=UserPublic
+)
+async def new_user(user: UserCreate, db: DBSession):
     return await create_user(user, db)
 
 
@@ -47,30 +54,6 @@ async def get_all_user_incidents(current_user: CurrentUser, db: DBSession):
     return incidents
 
 
-@router_users.get('/users/{id_user}',status_code=HTTPStatus.OK)
-async def get_user(id_user: int, db: DBSession):
-    stmt = select(User).where(User.id == id_user)
-
-    result = await db.execute(stmt)
-    user = result.scalar_one_or_none()
-
-    if user is None:
-        return 'Usuário não encontrado'
-
-    if user.role != 'supervisor':
-        raise HTTPException(
-            status_code=403,
-            detail='Você não possui permissão para realizar essa acão'
-        )
-
-    return UserPublic(
-        id=user.id,
-        email=user.email,
-        is_active=user.is_active,
-        creat_at=user.created_at
-    )
-
-@router_users.post('/users/disable',status_code=HTTPStatus.OK)
-async def disable_user(current_user:CurrentUser, db: DBSession):
-    return await disable_account(current_user,db)
-
+@router_users.post('/users/disable', status_code=HTTPStatus.OK)
+async def disable_user(current_user: CurrentUser, db: DBSession) -> str:
+    return await disable_account(current_user, db)

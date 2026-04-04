@@ -1,9 +1,12 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
-from sqlalchemy import Boolean, String, func, Enum as SAEnum
+
+from sqlalchemy import Boolean, String, func
+from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from app.schemas.user import UserRole
+
 from app.db.base import Base
+from app.schemas.user import UserRole
 
 if TYPE_CHECKING:
     from app.models.incident import Incident
@@ -14,11 +17,13 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     cpf: Mapped[str] = mapped_column(String(11), nullable=False, unique=True)
-    email: Mapped[str] = mapped_column(String(200), unique=True, nullable=False)
+    email: Mapped[str] = mapped_column(
+        String(200), unique=True, nullable=False
+    )
     password: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[UserRole] = mapped_column(
-        SAEnum(UserRole, name='user-role-enum'), 
-        default=UserRole.CLIENT, 
+        SAEnum(UserRole, name='user=role=enum'),
+        default=UserRole.CLIENT,
         nullable=False
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
@@ -26,4 +31,12 @@ class User(Base):
         server_default=func.now(), nullable=False
     )
 
-    incidents: Mapped[list["Incident"]] = relationship(back_populates="creator")
+    created_incidents: Mapped[list["Incident"]] = relationship(
+        foreign_keys="[Incident.creator_id]",
+        back_populates="creator"
+    )
+
+    assigned_incidents: Mapped[list["Incident"]] = relationship(
+        foreign_keys="[Incident.technician_id]",
+        back_populates="technician"
+    )

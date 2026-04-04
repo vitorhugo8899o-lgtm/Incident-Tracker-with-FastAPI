@@ -28,6 +28,7 @@ class IncidentCreate(IncidentBase):
 class IncidentUpdate(BaseModel):
     status: Optional[IncidentStatus] = None
     priority: Optional[IncidentPriority] = None
+    comment: Optional[str] = Field(None, max_length=500, description="Justificativa da alteração")
 
 
 class IncidentPublic(IncidentBase):

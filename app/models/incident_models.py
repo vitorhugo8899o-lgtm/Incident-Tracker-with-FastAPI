@@ -10,6 +10,7 @@ from app.schemas.custom_schema import IncidentPriority, IncidentStatus
 
 if TYPE_CHECKING:
     from app.models.users_models import User
+    from app.models.incident_history_models import IncidentHistory
 
 
 class Incident(Base):
@@ -19,12 +20,12 @@ class Incident(Base):
     title: Mapped[str] = mapped_column(String(150), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
     status: Mapped[IncidentStatus] = mapped_column(
-        SAEnum(IncidentStatus, name='incident=status=enum'),
+        SAEnum(IncidentStatus, name='incident,status,enum'),
         default=IncidentStatus.open,
         nullable=False,
     )
     priority: Mapped[IncidentPriority] = mapped_column(
-        SAEnum(IncidentPriority, name='incident=priority=enum'), nullable=False
+        SAEnum(IncidentPriority, name='incident,priority,enum'), nullable=False
     )
     created_at: Mapped[datetime] = mapped_column(
         server_default=func.now(), nullable=False
@@ -46,4 +47,9 @@ class Incident(Base):
     technician: Mapped["User"] = relationship(
         foreign_keys=[technician_id],
         back_populates="assigned_incidents"
+    )
+
+    history: Mapped[list["IncidentHistory"]] = relationship(
+        back_populates="incident",
+        cascade="all, delete-orphan" 
     )

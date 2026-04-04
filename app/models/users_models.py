@@ -22,7 +22,7 @@ class User(Base):
     )
     password: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[UserRole] = mapped_column(
-        SAEnum(UserRole, name='user=role=enum'),
+        SAEnum(UserRole, name='user,role,enum'),
         default=UserRole.CLIENT,
         nullable=False
     )

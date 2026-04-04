@@ -1,2 +1,2 @@
-from app.models.incident import Incident as Incident
-from app.models.users import User as User
+from app.models.incident_models import Incident as Incident
+from app.models.users_models import User as User

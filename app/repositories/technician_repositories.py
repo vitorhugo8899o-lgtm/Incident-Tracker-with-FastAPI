@@ -1,13 +1,18 @@
 from fastapi import HTTPException
 from sqlalchemy import select
+from sqlalchemy.exc import (
+    IntegrityError,
+    InvalidRequestError,
+    OperationalError,
+)
 
 from app.api.v1.dependencies import CurrentUser, DBSession
-from app.models.incident import Incident
-from app.models.users import User
-from app.schemas.incident import IncidentUpdate
-from sqlalchemy.exc import IntegrityError, OperationalError, InvalidRequestError
+from app.models.incident_models import Incident
+from app.models.users_models import User
+from app.schemas.incident_schema import IncidentUpdate
 
-async def is_technician(techinician_id: int, db: DBSession):
+
+async def is_technician(techinician_id: int, db: DBSession) -> User:
     stmt = select(User).where(User.id == techinician_id)
 
     result = await db.execute(stmt)
@@ -16,7 +21,7 @@ async def is_technician(techinician_id: int, db: DBSession):
 
     if user.role == 'client':
         raise HTTPException(
-            status_code=409,
+            status_code=403,
             detail='Você não possui permisão para realizar essa acão'
         )
 
@@ -28,7 +33,7 @@ async def uptade_incident(
         db: DBSession,
         id_incident: int,
         uptade_incident: IncidentUpdate
-):
+) -> Incident | None | str:
     stmt = select(Incident).where(Incident.id == id_incident)
 
     result = await db.execute(stmt)
@@ -53,7 +58,7 @@ async def uptade_incident(
     return incident
 
 
-async def disable_worker(id_user:int,db: DBSession):
+async def disable_worker(id_user: int, db: DBSession) -> User | None:
     try:
         stmt = select(User).where(User.id == id_user)
 
@@ -63,7 +68,7 @@ async def disable_worker(id_user:int,db: DBSession):
 
         if not user:
             return None
-        
+
         user.is_active = False
 
         await db.commit()
@@ -77,4 +82,3 @@ async def disable_worker(id_user:int,db: DBSession):
         raise HTTPException(status_code=409, detail=f'{e}')
     except InvalidRequestError as e:
         raise HTTPException(status_code=409, detail=f'{e}')
-

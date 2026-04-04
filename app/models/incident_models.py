@@ -9,8 +9,8 @@ from app.db.base import Base
 from app.schemas.custom_schema import IncidentPriority, IncidentStatus
 
 if TYPE_CHECKING:
-    from app.models.users_models import User
     from app.models.incident_history_models import IncidentHistory
+    from app.models.users_models import User
 
 
 class Incident(Base):
@@ -51,5 +51,5 @@ class Incident(Base):
 
     history: Mapped[list["IncidentHistory"]] = relationship(
         back_populates="incident",
-        cascade="all, delete-orphan" 
+        cascade="all, delete-orphan"
     )

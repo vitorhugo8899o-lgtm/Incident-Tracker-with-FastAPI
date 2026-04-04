@@ -8,7 +8,7 @@ from app.api.v1.dependencies import CurrentUser, DBSession
 from app.models.users_models import User
 from app.repositories.technician_repositories import (
     disable_worker,
-    uptade_incident,
+    update_incident,
 )
 from app.repositories.users_repository import user_exists
 from app.schemas.incident_schema import IncidentUpdate
@@ -25,7 +25,7 @@ async def resolve_incident(
     update: IncidentUpdate
 ):
 
-    return await uptade_incident(user, db, id_incident, update)
+    return await update_incident(user, db, id_incident, update)
 
 
 @router_technician.post('/disable/{id_user}', status_code=HTTPStatus.OK)

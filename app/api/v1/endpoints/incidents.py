@@ -46,4 +46,4 @@ async def fields_incides(
     db: DBSession,
     filter: Annotated[FilterIncidents, Query()]
 ):
-    return await get_all_incident(current_user.role,db, filter)
+    return await get_all_incident(current_user.role, db, filter)

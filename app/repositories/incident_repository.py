@@ -53,7 +53,11 @@ async def create_incident(
         raise HTTPException(status_code=409, detail=f'{e}')
 
 
-async def get_all_incident(user_role: str, db: DBSession, filter: FilterIncidents):
+async def get_incident_filter(
+        user_role: str,
+        db: DBSession,
+        filter: FilterIncidents
+) -> Incident:
 
     if user_role == 'client':
         raise HTTPException(
@@ -85,7 +89,7 @@ async def get_all_incident(user_role: str, db: DBSession, filter: FilterIncident
     return result.all()
 
 
-async def delete_incident(db: DBSession, id_incident: int, user_id: int):
+async def delete_incident(db: DBSession, id_incident: int, user_id: int) -> Incident | str:
     stmt = select(Incident).where(Incident.id == id_incident)
 
     result = await db.execute(stmt)

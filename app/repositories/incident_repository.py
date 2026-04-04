@@ -53,7 +53,7 @@ async def create_incident(
         raise HTTPException(status_code=409, detail=f'{e}')
 
 
-async def get_all_incident(user_role: str,db: DBSession, filter: FilterIncidents):
+async def get_all_incident(user_role: str, db: DBSession, filter: FilterIncidents):
 
     if user_role == 'client':
         raise HTTPException(

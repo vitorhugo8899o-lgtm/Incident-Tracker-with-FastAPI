@@ -53,7 +53,14 @@ async def create_incident(
         raise HTTPException(status_code=409, detail=f'{e}')
 
 
-async def get_all_incident(db: DBSession, filter: FilterIncidents):
+async def get_all_incident(user_role: str,db: DBSession, filter: FilterIncidents):
+
+    if user_role == 'client':
+        raise HTTPException(
+            status_code=403,
+            detail='Você não possui permisão para realizar essa acão'
+        )
+
     q = select(Incident)
 
     filter_data = filter.model_dump(

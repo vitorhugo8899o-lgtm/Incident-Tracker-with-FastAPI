@@ -45,6 +45,9 @@ async def uptade_incident(
 
     elif (incident.status == 'resolved') | (incident.status == 'closed'):
         return 'Chamado já foi resolvido'
+    
+    elif (incident.status == uptade_incident.status) & (incident.priority == uptade_incident.priority):
+        return 'Nenhuma alteração feita.'
 
     await is_technician(techinician.id, db)
 

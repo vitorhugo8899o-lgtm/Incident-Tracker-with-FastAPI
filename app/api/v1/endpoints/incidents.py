@@ -30,7 +30,7 @@ async def incident_create(
 @router_incident.delete(
         '/incidents/{id_incident}',
         status_code=HTTPStatus.OK,
-        response_model=IncidentDeleteReturn
+        response_model=IncidentDeleteReturn | str
 )
 async def user_delete_incident(
     user: CurrentUser,
@@ -46,4 +46,4 @@ async def fields_incides(
     db: DBSession,
     filter: Annotated[FilterIncidents, Query()]
 ):
-    return await get_all_incident(db, filter)
+    return await get_all_incident(current_user.role,db, filter)

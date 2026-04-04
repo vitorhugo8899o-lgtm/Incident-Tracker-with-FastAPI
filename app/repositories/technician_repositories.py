@@ -1,17 +1,22 @@
 from fastapi import HTTPException
-from sqlalchemy import select
+from sqlalchemy import select, and_
 from sqlalchemy.exc import (
     IntegrityError,
     InvalidRequestError,
     OperationalError,
 )
 from sqlalchemy.orm import joinedload
-
+from datetime import datetime, timedelta
 from app.api.v1.dependencies import CurrentUser, DBSession
 from app.models.incident_history_models import IncidentHistory
 from app.models.incident_models import Incident
 from app.models.users_models import User
 from app.schemas.incident_schema import IncidentStatus, IncidentUpdate
+import pandas as pd
+import matplotlib.pyplot as plt
+import io
+
+
 
 
 async def is_technician(techinician_id: int, db: DBSession) -> User:
@@ -125,3 +130,50 @@ async def get_history(id_incident:int,db:DBSession):
         return None
     
     return incident
+
+async def get_technician_metrics_data(db: DBSession, technician_id: int):
+    thirty_days_ago = datetime.now() - timedelta(days=30)
+    
+    stmt = select(Incident).where(
+        and_(
+            Incident.technician_id == technician_id,
+            Incident.status.in_([IncidentStatus.resolved, IncidentStatus.closed]),
+            Incident.created_at >= thirty_days_ago
+        )
+    )
+    
+    result = await db.execute(stmt)
+    return result.scalars().all()
+
+
+def generate_metrics_chart(incidents):
+    if not incidents:
+        return None
+
+    data = [
+        {"priority": i.priority.value, "date": i.created_at.date()} 
+        for i in incidents
+    ]
+    df = pd.DataFrame(data)
+
+    priority_counts = df['priority'].value_counts()
+
+    plt.figure(figsize=(10, 6))
+    colors = {'high': 'red', 'medium': 'orange', 'low': 'green'}
+    
+    current_colors = [colors.get(p, 'blue') for p in priority_counts.index]
+    
+    priority_counts.plot(kind='bar', color=current_colors)
+    
+    plt.title("Chamados Resolvidos nos Últimos 30 Dias por Prioridade")
+    plt.xlabel("Prioridade")
+    plt.ylabel("Quantidade")
+    plt.xticks(rotation=0)
+    plt.grid(axis='y', linestyle='--', alpha=0.7)
+
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+    plt.close() 
+    
+    return buf

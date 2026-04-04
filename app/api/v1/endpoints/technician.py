@@ -9,11 +9,13 @@ from app.models.users_models import User
 from app.repositories.technician_repositories import (
     disable_worker,
     update_incident,
+    get_technician_metrics_data,
+    generate_metrics_chart
 )
 from app.repositories.users_repository import user_exists
 from app.schemas.incident_schema import IncidentUpdate
 from app.schemas.user_schema import UserPublic
-
+from fastapi.responses import StreamingResponse
 router_technician = APIRouter()
 
 
@@ -70,3 +72,14 @@ async def supervisor_get_user(
         )
 
     return user
+
+
+@router_technician.get('/metrics/{tech_id}')
+async def technical_metrics_resolved(tech_id: int, db: DBSession):
+    incidents = await get_technician_metrics_data(db, tech_id)
+    chart_buffer = generate_metrics_chart(incidents)
+    
+    if not chart_buffer:
+        return {"detail": "Nenhum dado encontrado para o período."}
+
+    return StreamingResponse(chart_buffer, media_type="image/png")

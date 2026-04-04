@@ -113,3 +113,15 @@ async def disable_worker(id_user: int, db: DBSession) -> User | None:
         raise HTTPException(status_code=409, detail=f'{e}')
     except InvalidRequestError as e:
         raise HTTPException(status_code=409, detail=f'{e}')
+
+async def get_history(id_incident:int,db:DBSession):
+    stmt = select(Incident).where(Incident.id == id_incident)
+
+    result = await db.execute(stmt)
+
+    incident = result.scalar_one_or_none()
+
+    if not incident:
+        return None
+    
+    return incident

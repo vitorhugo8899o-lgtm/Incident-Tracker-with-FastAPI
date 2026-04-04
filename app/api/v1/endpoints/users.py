@@ -9,7 +9,7 @@ from sqlalchemy import select
 from app.api.v1.dependencies import CurrentUser, DBSession
 from app.models.incident import Incident
 from app.models.users import User
-from app.repositories.users_repository import create_user, login
+from app.repositories.users_repository import create_user, login, disable_account
 from app.schemas.user import Token, UserCreate, UserPublic
 
 Form_data = Annotated[OAuth2PasswordRequestForm, Depends()]
@@ -38,7 +38,7 @@ async def login_user(user: Form_data, db: DBSession, response: Response):
     return token
 
 
-@router_users.get('/user_incidents')
+@router_users.get('/user_incidents', status_code=HTTPStatus.OK)
 async def get_all_user_incidents(current_user: CurrentUser, db: DBSession):
     stmt = select(Incident).where(Incident.creator_id == current_user.id)
     result = await db.execute(stmt)
@@ -47,7 +47,7 @@ async def get_all_user_incidents(current_user: CurrentUser, db: DBSession):
     return incidents
 
 
-@router_users.get('/users/{id_user}')
+@router_users.get('/users/{id_user}',status_code=HTTPStatus.OK)
 async def get_user(id_user: int, db: DBSession):
     stmt = select(User).where(User.id == id_user)
 
@@ -59,7 +59,7 @@ async def get_user(id_user: int, db: DBSession):
 
     if user.role != 'supervisor':
         raise HTTPException(
-            status_code=409,
+            status_code=403,
             detail='Você não possui permissão para realizar essa acão'
         )
 
@@ -69,3 +69,8 @@ async def get_user(id_user: int, db: DBSession):
         is_active=user.is_active,
         creat_at=user.created_at
     )
+
+@router_users.post('/users/disable',status_code=HTTPStatus.OK)
+async def disable_user(current_user:CurrentUser, db: DBSession):
+    return await disable_account(current_user,db)
+

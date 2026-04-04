@@ -5,7 +5,7 @@ from app.api.v1.dependencies import CurrentUser, DBSession
 from app.models.incident import Incident
 from app.models.users import User
 from app.schemas.incident import IncidentUpdate
-
+from sqlalchemy.exc import IntegrityError, OperationalError, InvalidRequestError
 
 async def is_technician(techinician_id: int, db: DBSession):
     stmt = select(User).where(User.id == techinician_id)
@@ -51,3 +51,30 @@ async def uptade_incident(
     await db.refresh(incident)
 
     return incident
+
+
+async def disable_worker(id_user:int,db: DBSession):
+    try:
+        stmt = select(User).where(User.id == id_user)
+
+        result = await db.execute(stmt)
+
+        user = result.scalar_one_or_none()
+
+        if not user:
+            return None
+        
+        user.is_active = False
+
+        await db.commit()
+
+        return user
+    except IntegrityError as e:
+        await db.rollback()
+        raise HTTPException(status_code=409, detail=f'{e}')
+    except OperationalError as e:
+        await db.rollback()
+        raise HTTPException(status_code=409, detail=f'{e}')
+    except InvalidRequestError as e:
+        raise HTTPException(status_code=409, detail=f'{e}')
+

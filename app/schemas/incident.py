@@ -51,6 +51,10 @@ class IncidentPublic(IncidentBase):
     model_config = ConfigDict(from_attributes=True)
 
 
-class FilterPage(BaseModel):
+class FilterIncidents(BaseModel):
     offset: int = Field(ge=0, default=0)
     limit: int = Field(ge=0, default=0)
+    status: IncidentStatus | None = Field(default=None)
+    priority: IncidentPriority | None = Field(default=None)
+    created_at: datetime | None = Field(default=None)
+    creator: int | None = Field(default=None)

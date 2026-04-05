@@ -19,7 +19,7 @@ from app.models.users_models import User
 from app.schemas.incident_schema import IncidentStatus, IncidentUpdate
 
 
-async def is_technician(techinician_id: int, db: DBSession) -> User:
+async def is_technician(techinician_id: int, db: DBSession) -> User | None:
     stmt = select(User).where(User.id == techinician_id)
 
     result = await db.execute(stmt)
@@ -188,3 +188,23 @@ def generate_metrics_chart(incidents):
     plt.close()
 
     return buf
+
+async def get_tech_history(user_id:int,db:DBSession):
+    tech = await is_technician(user_id,db)
+    
+    if not tech:
+        raise HTTPException(
+            status_code=403,
+            detail='Você não possui permissão para realizar essa acão'
+        )
+    
+    stmt = select(IncidentHistory).where(IncidentHistory.user_id == tech.id)
+
+    result = await db.execute(stmt)
+
+    history = result.scalars().all()
+
+    if not history:
+        return None
+    
+    return history

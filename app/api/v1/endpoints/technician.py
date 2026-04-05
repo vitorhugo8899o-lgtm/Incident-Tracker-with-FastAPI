@@ -7,11 +7,13 @@ from sqlalchemy import select
 
 from app.api.v1.dependencies import CurrentUser, DBSession
 from app.models.users_models import User
+from app.models.incident_history_models import IncidentHistory
 from app.repositories.technician_repositories import (
     disable_worker,
     generate_metrics_chart,
     get_technician_metrics_data,
     update_incident,
+    get_tech_history
 )
 from app.repositories.users_repository import user_exists
 from app.schemas.incident_schema import IncidentUpdate
@@ -84,3 +86,7 @@ async def technical_metrics_resolved(tech_id: int, db: DBSession):
         return {"detail": "Nenhum dado encontrado para o período."}
 
     return StreamingResponse(chart_buffer, media_type="image/png")
+
+@router_technician.get('/tech/history_incident/',status_code=HTTPStatus.OK)
+async def history_tech_incidents(user:CurrentUser,db:DBSession):
+    return await get_tech_history(user.id,db)

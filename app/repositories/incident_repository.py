@@ -16,16 +16,14 @@ from app.schemas.incident_schema import (
 
 
 async def create_incident(
-        user: CurrentUser,
-        db: DBSession,
-        incident: IncidentCreate
+    user: CurrentUser, db: DBSession, incident: IncidentCreate
 ) -> IncidentPublic:
     new_incident = Incident(
         title=incident.title,
         description=incident.description,
         priority=incident.priority,
         status=incident.status,
-        creator=user
+        creator=user,
     )
 
     db.add(new_incident)
@@ -40,43 +38,40 @@ async def create_incident(
             description=new_incident.description,
             status=new_incident.status,
             priority=new_incident.priority,
-            created_at=new_incident.created_at
+            created_at=new_incident.created_at,
         )
 
-    except IntegrityError as e:
+    except IntegrityError as e:  # pragma: no cover
         await db.rollback()
-        raise HTTPException(status_code=409, detail=f'{e}')
-    except OperationalError as e:
+        raise HTTPException(status_code=409, detail=f'{e}')  # pragma: no cover
+    except OperationalError as e:  # pragma: no cover
         await db.rollback()
-        raise HTTPException(status_code=409, detail=f'{e}')
-    except InvalidRequestError as e:
+        raise HTTPException(status_code=409, detail=f'{e}')  # pragma: no cover
+    except InvalidRequestError as e:  # pragma: no cover
         raise HTTPException(status_code=409, detail=f'{e}')
 
 
 async def get_incident_filter(
-        user_role: str,
-        db: DBSession,
-        filter: FilterIncidents
+    user_role: str, db: DBSession, filter: FilterIncidents
 ) -> Incident:
 
     if user_role == 'client':
         raise HTTPException(
             status_code=403,
-            detail='Você não possui permisão para realizar essa acão'
+            detail='Você não possui permisão para realizar essa acão',
         )
 
     q = select(Incident)
 
     filter_data = filter.model_dump(
-        exclude={'limit', 'offset'},
-        exclude_none=True
+        exclude={'limit', 'offset'}, exclude_none=True
     )
 
     for field, value in filter_data.items():
         if field == 'creator':
             q = q.filter(Incident.creator_id == value)
 
-        elif field in ['status', 'priority', 'created_at']: # noqa
+        elif field in ['status', 'priority', 'created_at']:  # noqa
             db_attribute = getattr(Incident, field)
             q = q.filter(db_attribute == value)
 
@@ -89,7 +84,9 @@ async def get_incident_filter(
     return result.all()
 
 
-async def delete_incident(db: DBSession, id_incident: int, user_id: int) -> Incident | str:
+async def delete_incident(
+    db: DBSession, id_incident: int, user_id: int
+) -> Incident | str:  # noqa
     stmt = select(Incident).where(Incident.id == id_incident)
 
     result = await db.execute(stmt)
@@ -102,7 +99,7 @@ async def delete_incident(db: DBSession, id_incident: int, user_id: int) -> Inci
     if incident.creator_id != user_id:
         raise HTTPException(
             status_code=403,
-            detail='Você não possui permisão para realizar essa acão.'
+            detail='Você não possui permisão para realizar essa acão.',
         )
 
     try:
@@ -110,11 +107,11 @@ async def delete_incident(db: DBSession, id_incident: int, user_id: int) -> Inci
         await db.commit()
 
         return incident
-    except IntegrityError as e:
+    except IntegrityError as e:  # pragma: no cover
         await db.rollback()
         raise HTTPException(status_code=409, detail=f'{e}')
-    except OperationalError as e:
+    except OperationalError as e:  # pragma: no cover
         await db.rollback()
         raise HTTPException(status_code=409, detail=f'{e}')
-    except InvalidRequestError as e:
+    except InvalidRequestError as e:  # pragma: no cover
         raise HTTPException(status_code=409, detail=f'{e}')

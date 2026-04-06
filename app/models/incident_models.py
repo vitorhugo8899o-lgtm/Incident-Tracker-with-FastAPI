@@ -39,17 +39,14 @@ class Incident(Base):
         ForeignKey('users.id'), nullable=True
     )
 
-    creator: Mapped["User"] = relationship(
-        foreign_keys=[creator_id],
-        back_populates="created_incidents"
+    creator: Mapped['User'] = relationship(
+        foreign_keys=[creator_id], back_populates='created_incidents'
     )
 
-    technician: Mapped["User"] = relationship(
-        foreign_keys=[technician_id],
-        back_populates="assigned_incidents"
+    technician: Mapped['User'] = relationship(
+        foreign_keys=[technician_id], back_populates='assigned_incidents'
     )
 
-    history: Mapped[list["IncidentHistory"]] = relationship(
-        back_populates="incident",
-        cascade="all, delete-orphan"
+    history: Mapped[list['IncidentHistory']] = relationship(
+        back_populates='incident', cascade='all, delete-orphan'
     )

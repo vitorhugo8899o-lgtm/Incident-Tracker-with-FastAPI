@@ -1,30 +1,34 @@
-from fastapi import FastAPI
 import sys
 from contextlib import asynccontextmanager
-from sqlalchemy import text
-from app.api.v1.router import api_router
 
+from fastapi import FastAPI
+from sqlalchemy import text
+
+from app.api.v1.router import api_router
 from app.db.session import engine
 
-async def check_database_connection():
+
+async def check_database_connection():  # pragma: no cover
     try:
         async with engine.connect() as conn:
-            await conn.execute(text("SELECT 1"))
+            await conn.execute(text('SELECT 1'))
     except Exception as e:
-        raise ConnectionError(f"Falha de conexão com o banco de dados: {e}")
-    
+        raise ConnectionError(f'Falha de conexão com o banco de dados: {e}')
+
+
 @asynccontextmanager
-async def lifespan(app: FastAPI):
-    
+async def lifespan(app: FastAPI):  # pragma: no cover
+
     try:
         await check_database_connection()
-        
-    except Exception as e:
-        sys.exit(1) 
 
-    yield 
+    except Exception:
+        sys.exit(1)
+
+    yield
 
     await engine.dispose()
+
 
 app = FastAPI(lifespan=lifespan)
 

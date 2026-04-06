@@ -33,5 +33,5 @@ class IncidentHistory(Base):
         server_default=func.now(), nullable=False
     )
 
-    incident: Mapped["Incident"] = relationship(back_populates="history")
-    user: Mapped["User"] = relationship()
+    incident: Mapped['Incident'] = relationship(back_populates='history')
+    user: Mapped['User'] = relationship()

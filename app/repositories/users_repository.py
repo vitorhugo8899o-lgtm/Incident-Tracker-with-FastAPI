@@ -21,7 +21,7 @@ logging.basicConfig(level=logging.INFO)
 
 
 async def user_exists(user: UserCreate | str, db: DBSession) -> User | bool:
-    """Busca o usuário no banco de dados, no caso de busca para login ele realiza uma busca somente para o email, caso contrário busca pelo email e cpf retornando o objeto do banco de dados ou um bool""" # noqa
+    """Busca o usuário no banco de dados, no caso de busca para login ele realiza uma busca somente para o email, caso contrário busca pelo email e cpf retornando o objeto do banco de dados ou um bool"""  # noqa
 
     # Email sendo passado no login como str
     if type(user) is str:
@@ -30,8 +30,8 @@ async def user_exists(user: UserCreate | str, db: DBSession) -> User | bool:
     # criacão de usuário
     elif type(user) is UserCreate:
         stmt = select(User).where(
-        (User.email == user.email) | (User.cpf == user.cpf)
-    )
+            (User.email == user.email) | (User.cpf == user.cpf)
+        )
 
     exist = await db.execute(stmt)
 
@@ -41,28 +41,20 @@ async def user_exists(user: UserCreate | str, db: DBSession) -> User | bool:
         return None
 
     if result.is_active is False:
-        raise HTTPException(
-            status_code=409,
-            detail='Usuário desativado'
-        )
+        raise HTTPException(status_code=409, detail='Usuário desativado')
 
     return result
 
 
-async def create_user(
-    user: UserCreate, db: DBSession
-) -> User:
+async def create_user(user: UserCreate, db: DBSession) -> User:
     user_already_exists = await user_exists(user, db)
     if user_already_exists:
         raise HTTPException(
-            status_code=409,
-            detail="Email ou CPF já cadastrado no sistema."
+            status_code=409, detail='Email ou CPF já cadastrado no sistema.'
         )
 
     new_user = User(
-        cpf=user.cpf,
-        email=user.email,
-        password=hash_password(user.password)
+        cpf=user.cpf, email=user.email, password=hash_password(user.password)
     )
 
     db.add(new_user)
@@ -71,21 +63,21 @@ async def create_user(
         await db.refresh(new_user)
 
         return new_user
-    except IntegrityError as e:
-        await db.rollback()
-        raise HTTPException(status_code=409, detail=f'{e}')
-    except OperationalError as e:
-        await db.rollback()
-        raise HTTPException(status_code=409, detail=f'{e}')
-    except InvalidRequestError as e:
-        raise HTTPException(status_code=409, detail=f'{e}')
+    except IntegrityError as e:  # pragma: no cover
+        await db.rollback()  # pragma: no cover
+        raise HTTPException(status_code=409, detail=f'{e}')  # pragma: no cover
+    except OperationalError as e:  # pragma: no cover
+        await db.rollback()  # pragma: no cover
+        raise HTTPException(status_code=409, detail=f'{e}')  # pragma: no cover
+    except InvalidRequestError as e:  # pragma: no cover
+        raise HTTPException(status_code=409, detail=f'{e}')  # pragma: no cover
 
 
 async def login(user_data: OAuth2PasswordRequestForm, db: DBSession) -> Token:
     user = await user_exists(user_data.username, db)
 
     if not user or not verify_password(user_data.password, user.password):
-        raise HTTPException(status_code=401, detail="Credenciais inválidas")
+        raise HTTPException(status_code=401, detail='Credenciais inválidas')
 
     access_token = create_token(data={'sub': str(user.id)})
 
@@ -94,16 +86,18 @@ async def login(user_data: OAuth2PasswordRequestForm, db: DBSession) -> Token:
     return token
 
 
-async def disable_account(current_user: CurrentUser, db: DBSession) -> str | None: # noqa
+async def disable_account(
+    current_user: CurrentUser, db: DBSession
+) -> str | None:  # noqa
     user = await user_exists(current_user.email, db)
 
-    if not user:
+    if not user:  # pragma: no cover
         return None
 
     if user.role != 'client':
         raise HTTPException(
             status_code=403,
-            detail='Você não possui permissão para realizar essa acão.'
+            detail='Você não possui permissão para realizar essa acão.',
         )
 
     user.is_active = False

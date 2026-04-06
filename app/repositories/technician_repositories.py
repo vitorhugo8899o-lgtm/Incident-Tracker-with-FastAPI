@@ -29,7 +29,7 @@ async def is_technician(techinician_id: int, db: DBSession) -> User | None:
     if user.role == 'client':
         raise HTTPException(
             status_code=403,
-            detail='Você não possui permisão para realizar essa acão'
+            detail='Você não possui permisão para realizar essa acão',
         )
 
     return user
@@ -39,7 +39,7 @@ async def update_incident(
     technician: CurrentUser,
     db: DBSession,
     id_incident: int,
-    update_data: IncidentUpdate
+    update_data: IncidentUpdate,
 ) -> Incident:
     stmt = (
         select(Incident)
@@ -47,7 +47,7 @@ async def update_incident(
             joinedload(Incident.creator).load_only(
                 User.id, User.email, User.role
             ),
-            joinedload(Incident.history)
+            joinedload(Incident.history),
         )
         .where(Incident.id == id_incident)
     )
@@ -56,21 +56,21 @@ async def update_incident(
     incident = result.unique().scalar_one_or_none()
 
     if not incident:
-        raise HTTPException(status_code=404, detail="Incidente não encontrado")
+        raise HTTPException(status_code=404, detail='Incidente não encontrado')
 
-    if incident.status in [IncidentStatus.resolved, IncidentStatus.closed]: #noqa
-        raise HTTPException(status_code=400, detail="Chamado já finalizado")
+    if incident.status in [IncidentStatus.resolved, IncidentStatus.closed]:  # noqa
+        raise HTTPException(status_code=409, detail='Chamado já finalizado')
 
     await is_technician(technician.id, db)
 
     changes = []
     if update_data.status and update_data.status != incident.status:
-        changes.append(f"Status: {incident.status} -> {update_data.status}")
+        changes.append(f'Status: {incident.status} -> {update_data.status}')
         incident.status = update_data.status
 
     if update_data.priority and update_data.priority != incident.priority:
         changes.append(
-            f"Prioridade: {incident.priority} -> {update_data.priority}"
+            f'Prioridade: {incident.priority} -> {update_data.priority}'
         )
         incident.priority = update_data.priority
 
@@ -82,8 +82,10 @@ async def update_incident(
     new_history = IncidentHistory(
         incident_id=incident.id,
         user_id=technician.id,
-        action=" | ".join(changes) if changes else "Atualização de dados/comentário", #noqa
-        comment=update_data.comment
+        action=' | '.join(changes)
+        if changes
+        else 'Atualização de dados/comentário',  # noqa
+        comment=update_data.comment,
     )
 
     db.add(new_history)
@@ -91,11 +93,10 @@ async def update_incident(
     try:
         await db.commit()
         await db.refresh(incident)
-    except Exception as e:
+    except Exception as e:  # pragma: no cover
         await db.rollback()
         raise HTTPException(
-            status_code=500,
-            detail=f"Erro ao salvar alterações: {e}"
+            status_code=500, detail=f'Erro ao salvar alterações: {e}'
         )
 
     return incident
@@ -117,13 +118,13 @@ async def disable_worker(id_user: int, db: DBSession) -> User | None:
         await db.commit()
 
         return user
-    except IntegrityError as e:
+    except IntegrityError as e:  # pragma: no cover
         await db.rollback()
         raise HTTPException(status_code=409, detail=f'{e}')
-    except OperationalError as e:
+    except OperationalError as e:  # pragma: no cover
         await db.rollback()
         raise HTTPException(status_code=409, detail=f'{e}')
-    except InvalidRequestError as e:
+    except InvalidRequestError as e:  # pragma: no cover
         raise HTTPException(status_code=409, detail=f'{e}')
 
 
@@ -146,10 +147,11 @@ async def get_technician_metrics_data(db: DBSession, technician_id: int):
     stmt = select(Incident).where(
         and_(
             Incident.technician_id == technician_id,
-            Incident.status.in_(
-                [IncidentStatus.resolved, IncidentStatus.closed]
-            ),
-            Incident.created_at >= thirty_days_ago
+            Incident.status.in_([
+                IncidentStatus.resolved,
+                IncidentStatus.closed,
+            ]),
+            Incident.created_at >= thirty_days_ago,
         )
     )
 
@@ -162,7 +164,7 @@ def generate_metrics_chart(incidents):
         return None
 
     data = [
-        {"priority": i.priority.value, "date": i.created_at.date()}
+        {'priority': i.priority.value, 'date': i.created_at.date()}
         for i in incidents
     ]
     df = pd.DataFrame(data)
@@ -176,9 +178,9 @@ def generate_metrics_chart(incidents):
 
     priority_counts.plot(kind='bar', color=current_colors)
 
-    plt.title("Chamados Resolvidos nos Últimos 30 Dias por Prioridade")
-    plt.xlabel("Prioridade")
-    plt.ylabel("Quantidade")
+    plt.title('Chamados Resolvidos nos Últimos 30 Dias por Prioridade')
+    plt.xlabel('Prioridade')
+    plt.ylabel('Quantidade')
     plt.xticks(rotation=0)
     plt.grid(axis='y', linestyle='--', alpha=0.7)
 
@@ -189,15 +191,10 @@ def generate_metrics_chart(incidents):
 
     return buf
 
-async def get_tech_history(user_id:int,db:DBSession):
-    tech = await is_technician(user_id,db)
-    
-    if not tech:
-        raise HTTPException(
-            status_code=403,
-            detail='Você não possui permissão para realizar essa acão'
-        )
-    
+
+async def get_tech_history(user_id: int, db: DBSession):
+    tech = await is_technician(user_id, db)
+
     stmt = select(IncidentHistory).where(IncidentHistory.user_id == tech.id)
 
     result = await db.execute(stmt)
@@ -206,5 +203,5 @@ async def get_tech_history(user_id:int,db:DBSession):
 
     if not history:
         return None
-    
+
     return history

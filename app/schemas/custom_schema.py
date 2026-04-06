@@ -16,6 +16,6 @@ class IncidentPriority(str, Enum):
 
 
 class UserRole(str, Enum):
-    CLIENT = "client"
-    TECHNICIAN = "technician"
-    SUPERVISOR = "supervisor"
+    CLIENT = 'client'
+    TECHNICIAN = 'technician'
+    SUPERVISOR = 'supervisor'

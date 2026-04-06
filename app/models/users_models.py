@@ -24,19 +24,17 @@ class User(Base):
     role: Mapped[UserRole] = mapped_column(
         SAEnum(UserRole, name='user,role,enum'),
         default=UserRole.CLIENT,
-        nullable=False
+        nullable=False,
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(
         server_default=func.now(), nullable=False
     )
 
-    created_incidents: Mapped[list["Incident"]] = relationship(
-        foreign_keys="[Incident.creator_id]",
-        back_populates="creator"
+    created_incidents: Mapped[list['Incident']] = relationship(
+        foreign_keys='[Incident.creator_id]', back_populates='creator'
     )
 
-    assigned_incidents: Mapped[list["Incident"]] = relationship(
-        foreign_keys="[Incident.technician_id]",
-        back_populates="technician"
+    assigned_incidents: Mapped[list['Incident']] = relationship(
+        foreign_keys='[Incident.technician_id]', back_populates='technician'
     )

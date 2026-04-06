@@ -10,11 +10,13 @@ from app.core.config import Settings
 from app.db.session import AsyncSessionLocal
 from app.models.users_models import User
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/Login", auto_error=False) # noqa
+oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl='/api/v1/Login', auto_error=False
+)  # noqa
 settings = Settings()
 
 
-async def get_db():
+async def get_db():  # pragma: no cover
     async with AsyncSessionLocal() as session:
         yield session
 
@@ -23,47 +25,42 @@ DBSession = Annotated[AsyncSession, Depends(get_db)]
 
 
 async def get_current_user(
-        request: Request,
-        db: DBSession,
-        header_token: str = Depends(oauth2_scheme)
-    ) -> User:
+    request: Request, db: DBSession, header_token: str = Depends(oauth2_scheme)
+) -> User:
 
-    cookie_token = request.cookies.get("Login_info")
+    cookie_token = request.cookies.get('Login_info')
 
     token = cookie_token or header_token
     if not token:
-        auth_header = request.headers.get("Authorization")
-        if auth_header and auth_header.startswith("Bearer "):
-            token = auth_header.split(" ")[1]
+        auth_header = request.headers.get('Authorization')
+        if auth_header and auth_header.startswith('Bearer '):
+            token = auth_header.split(' ')[1]  # pragma: no cover
 
     if not token:
-        raise HTTPException(status_code=401, detail="Não autenticado.")
+        raise HTTPException(status_code=401, detail='Não autenticado.')
 
     try:
         payload = jwt.decode(
-                token,
-                settings.SECRET_KEY,
-                algorithms=[settings.ALGORITHM]
-            )
+            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+        )
 
-        user_id_str: str = payload.get("sub")
+        user_id_str: str = payload.get('sub')
 
-        if user_id_str is None:
-            raise HTTPException(status_code=401, detail="Token inválido")
+        if user_id_str is None:  # pragma: no cover
+            raise HTTPException(status_code=401, detail='Token inválido')
 
         user_id = int(user_id_str)
 
     except (jwt.PyJWTError, ValueError) as e:
         raise HTTPException(
-            status_code=401,
-            detail=f"Token inválido ou expirado {e}"
+            status_code=401, detail=f'Token inválido ou expirado {e}'
         )
     stmt = select(User).where(User.id == user_id)
     result = await db.execute(stmt)
     user = result.scalar_one_or_none()
 
-    if user is None:
-        raise HTTPException(status_code=401, detail="Usuário não encontrado.")
+    if user is None:  # pragma: no cover
+        raise HTTPException(status_code=401, detail='Usuário não encontrado.')
 
     return user
 

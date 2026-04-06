@@ -20,9 +20,7 @@ router_users = APIRouter()
 
 
 @router_users.post(
-        '/users',
-        status_code=HTTPStatus.CREATED,
-        response_model=UserPublic
+    '/users', status_code=HTTPStatus.CREATED, response_model=UserPublic
 )
 async def new_user(user: UserCreate, db: DBSession):
     return await create_user(user, db)
@@ -40,7 +38,7 @@ async def login_user(user: Form_data, db: DBSession, response: Response):
         secure=False,
     )
 
-    response.headers["Cache-Control"] = "no-store"
+    response.headers['Cache-Control'] = 'no-store'
 
     return token
 

@@ -2,6 +2,7 @@
 name = "incident-tracker"
 version = "0.1.0"
 description = "sistema interno onde a equipe de operações e os desenvolvedores relatam quedas de servidores, bugs críticos em produção e gerenciam o status e a prioridade da resolução."
+package-mode = false
 authors = [
     {name = "Vítor",email = "vitorhugo8899o@gmail.com"}
 ]

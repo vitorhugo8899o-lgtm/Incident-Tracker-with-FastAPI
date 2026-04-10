@@ -32,6 +32,7 @@ services:
       - "80:80"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./PageError/index.html:/usr/share/nginx/html/index.html:ro
     depends_on:
       - api
     networks:

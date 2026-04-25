@@ -28,11 +28,19 @@ async def new_user(user: UserCreate, db: DBSession):
 
 @router_users.post('/Login', status_code=HTTPStatus.OK, response_model=Token)
 async def login_user(user: Form_data, db: DBSession, response: Response):
-    token = await login(user, db)
+    token, info = await login(user, db)
 
     response.set_cookie(
         key='Login_info',
         value=token.access_token,
+        max_age=60 * 60,
+        httponly=True,
+        secure=False,
+    )
+
+    response.set_cookie(
+        key='Info_Role',
+        value=info,
         max_age=60 * 60,
         httponly=True,
         secure=False,

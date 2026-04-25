@@ -83,7 +83,7 @@ async def login(user_data: OAuth2PasswordRequestForm, db: DBSession) -> Token:
 
     token = Token(access_token=access_token, token_type='Bearer')
 
-    return token
+    return token, user.role
 
 
 async def disable_account(

@@ -42,7 +42,7 @@ async def login_user(user: Form_data, db: DBSession, response: Response):
         key='Info_Role',
         value=info,
         max_age=60 * 60,
-        httponly=True,
+        httponly=False,
         secure=False,
     )
 

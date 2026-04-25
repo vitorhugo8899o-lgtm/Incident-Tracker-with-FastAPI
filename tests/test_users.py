@@ -116,7 +116,24 @@ async def test_user_disable_account(client, token_user):
     response = req.json()
 
     assert req.status_code == status
-    assert response == 'Usuário desabilitado'
+    assert response == 'Conta deletada com sucesso!\nMuito Obrigado por usar o NexusTracker' #noqa
+
+
+@pytest.mark.asyncio
+async def test_user_disable_account_but_have_incidents(
+    client, incident_user, token_user
+):
+    req = await client.post(
+        '/api/v1/users/disable',
+        headers={'Authorization': f'Bearer {token_user}'},
+    )
+
+    status = 200
+
+    response = req.json()
+
+    assert req.status_code == status
+    assert response == 'Conta desativada, como você ainda possui chamados em aberto ou que foram resolvidos recentemente sua conta será deletada dentre os proximos 3 meses.' #noqa
 
 
 @pytest.mark.asyncio

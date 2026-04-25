@@ -12,6 +12,7 @@ from sqlalchemy.exc import (
 
 from app.api.v1.dependencies import CurrentUser, DBSession
 from app.core.security import create_token, hash_password, verify_password
+from app.models.incident_models import Incident
 from app.models.users_models import User
 from app.schemas.user_schema import Token, UserCreate
 
@@ -89,18 +90,38 @@ async def login(user_data: OAuth2PasswordRequestForm, db: DBSession) -> Token:
 async def disable_account(
     current_user: CurrentUser, db: DBSession
 ) -> str | None:  # noqa
-    user = await user_exists(current_user.email, db)
 
-    if not user:  # pragma: no cover
-        return None
-
-    if user.role != 'client':
+    if (
+        current_user.role == "technician") | (current_user.role == "supervisor"
+        ):
         raise HTTPException(
             status_code=403,
-            detail='Você não possui permissão para realizar essa acão.',
+            detail='Você não possui permissão para realizar essa acão.'
         )
 
-    user.is_active = False
+    stmt = (
+        select(Incident).where(Incident.creator_id == current_user.id).limit(1)
+    )
 
-    await db.commit()
-    return 'Usuário desabilitado'
+    result = await db.execute(stmt)
+    has_incidents = result.scalar_one_or_none() is not None
+
+    if has_incidents:
+        current_user.is_active = False
+        await db.commit()
+
+        return 'Conta desativada, como você ainda possui chamados em aberto ou que foram resolvidos recentemente sua conta será deletada dentre os proximos 3 meses.'  # noqa
+
+    try:
+        await db.delete(current_user)
+        await db.commit()
+
+        return 'Conta deletada com sucesso!\nMuito Obrigado por usar o NexusTracker'  # noqa
+    except IntegrityError as e:  # pragma: no cover
+        await db.rollback()
+        raise HTTPException(status_code=409, detail=f'{e}')
+    except OperationalError as e:  # pragma: no cover
+        await db.rollback()
+        raise HTTPException(status_code=409, detail=f'{e}')
+    except InvalidRequestError as e:  # pragma: no cover
+        raise HTTPException(status_code=409, detail=f'{e}')

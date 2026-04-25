@@ -3,6 +3,7 @@ from typing import Annotated
 
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.responses import Response
 from sqlalchemy import select
 from sqlalchemy.exc import (
     IntegrityError,
@@ -88,7 +89,7 @@ async def login(user_data: OAuth2PasswordRequestForm, db: DBSession) -> Token:
 
 
 async def disable_account(
-    current_user: CurrentUser, db: DBSession
+    current_user: CurrentUser, db: DBSession, response: Response
 ) -> str | None:  # noqa
 
     if (
@@ -110,11 +111,15 @@ async def disable_account(
         current_user.is_active = False
         await db.commit()
 
+        response.delete_cookie(key="Login_info")
+
         return 'Conta desativada, como você ainda possui chamados em aberto ou que foram resolvidos recentemente sua conta será deletada dentre os proximos 3 meses.'  # noqa
 
     try:
         await db.delete(current_user)
         await db.commit()
+
+        response.delete_cookie(key="Login_info")
 
         return 'Conta deletada com sucesso!\nMuito Obrigado por usar o NexusTracker'  # noqa
     except IntegrityError as e:  # pragma: no cover

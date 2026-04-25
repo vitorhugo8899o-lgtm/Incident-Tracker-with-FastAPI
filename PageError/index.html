@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Incident Tracker - 404</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #343a40;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+
+        .error-container {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 90%;
+        }
+
+        h1 {
+            font-size: 80px;
+            color: #dc3545;
+            margin: 0;
+        }
+
+        h2 {
+            margin-top: 10px;
+            font-size: 24px;
+        }
+
+        p {
+            color: #6c757d;
+            margin-bottom: 25px;
+        }
+
+        a {
+            display: inline-block;
+            background-color: #0d6efd;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        a:hover {
+            background-color: #0b5ed7;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="error-container">
+        <h1>404</h1>
+        <h2>Página ou Incidente Não Encontrado</h2>
+        <p>O recurso que você está tentando acessar não existe, foi removido ou está temporariamente indisponível.
+            Verifique se a URL ou o ID do incidente estão corretos.</p>
+        <a href="/">Voltar para o Início</a>
+    </div>
+
+    <script>
+        const statusCodes = {
+            "403": { title: "Acesso Negado", msg: "Você não tem permissão para acessar este recurso no Incident Tracker." },
+            "404": { title: "Página Não Encontrada", msg: "O incidente ou página que você busca não existe." },
+            "500": { title: "Erro Interno", msg: "Ocorreu uma falha no servidor. Tente novamente em instantes." },
+            "502": { title: "Bad Gateway", msg: "O servidor de API está temporariamente fora do ar." }
+        };
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+
+        if (code && statusCodes[code]) {
+            document.getElementById('error-code').innerText = code;
+            document.getElementById('error-title').innerText = statusCodes[code].title;
+            document.getElementById('error-message').innerText = statusCodes[code].msg;
+        }
+    </script>
+</body>
+
+</html>

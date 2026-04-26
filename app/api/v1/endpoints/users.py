@@ -60,6 +60,13 @@ async def get_all_user_incidents(current_user: CurrentUser, db: DBSession):
     return incidents
 
 
+@router_users.post('/Logout',status_code=HTTPStatus.OK, response_model=str)
+async def logout_user(current_user:CurrentUser, response: Response):
+    response.delete_cookie(key="Login_info")
+    response.delete_cookie(key="Info_Role")
+
+    return "Usuário deslogado." 
+
 @router_users.post('/users/disable', status_code=HTTPStatus.OK)
 async def disable_user(
     current_user: CurrentUser, db: DBSession,response: Response

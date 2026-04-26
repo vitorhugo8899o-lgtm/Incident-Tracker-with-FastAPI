@@ -121,6 +121,7 @@ async def disable_account(
         await db.commit()
 
         response.delete_cookie(key="Login_info")
+        response.delete_cookie(key="Info_Role")
 
         return 'Conta deletada com sucesso!\nMuito Obrigado por usar o NexusTracker'  # noqa
     except IntegrityError as e:  # pragma: no cover

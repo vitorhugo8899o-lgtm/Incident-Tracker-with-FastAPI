@@ -75,9 +75,16 @@ async def supervisor_get_user(
     return user
 
 
-@router_technician.get('/metrics/{tech_id}')
-async def technical_metrics_resolved(tech_id: int, db: DBSession):
-    incidents = await get_technician_metrics_data(db, tech_id)
+@router_technician.get('/metrics/me')
+async def technical_metrics_resolved(current_user: CurrentUser, db: DBSession):
+
+    if current_user.role == "client":
+        raise HTTPException(
+            status_code=403,
+            detail="Você não tem permisão para realizar essa ação"
+        )
+
+    incidents = await get_technician_metrics_data(db, current_user.id)
     chart_buffer = generate_metrics_chart(incidents)
 
     if not chart_buffer:

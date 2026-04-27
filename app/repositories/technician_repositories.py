@@ -2,6 +2,7 @@ import io
 from datetime import datetime, timedelta
 
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 import pandas as pd
 from fastapi import HTTPException
 from sqlalchemy import and_, select
@@ -111,7 +112,15 @@ async def disable_worker(id_user: int, db: DBSession) -> User | None:
         user = result.scalar_one_or_none()
 
         if not user:
-            return None
+            raise HTTPException(
+                status_code=404,
+                detail="Usuário não encontrado, verifique o ID se digitou um ID valído."
+            )
+        elif user.is_active is False:
+            raise HTTPException(
+                status_code=409,
+                detail="Esse usuário já está desabilitado"
+            )
 
         user.is_active = False
 
@@ -163,32 +172,42 @@ def generate_metrics_chart(incidents):
     if not incidents:
         return None
 
-    data = [
-        {'priority': i.priority.value, 'date': i.created_at.date()}
-        for i in incidents
-    ]
+    data = [{'priority': i.priority.value} for i in incidents]
     df = pd.DataFrame(data)
-
     priority_counts = df['priority'].value_counts()
 
-    plt.figure(figsize=(10, 6))
-    colors = {'high': 'red', 'medium': 'orange', 'low': 'green'}
+    colors_map = {'high': '#ef4444', 'medium': '#f59e0b', 'low': '#10b981'}
+    current_colors = [colors_map.get(p, '#3b82f6') for p in priority_counts.index]
 
-    current_colors = [colors.get(p, 'blue') for p in priority_counts.index]
+    plt.style.use('dark_background')
+    fig, ax = plt.subplots(figsize=(10, 6), facecolor='#11141d') # Cor do card no React
+    ax.set_facecolor('#11141d')
 
-    priority_counts.plot(kind='bar', color=current_colors)
+    bars = priority_counts.plot(kind='bar', color=current_colors, ax=ax, width=0.6)
 
-    plt.title('Chamados Resolvidos nos Últimos 30 Dias por Prioridade')
-    plt.xlabel('Prioridade')
-    plt.ylabel('Quantidade')
-    plt.xticks(rotation=0)
-    plt.grid(axis='y', linestyle='--', alpha=0.7)
+    plt.title('Chamados Resolvidos (Últimos 30 dias)', fontsize=14, pad=20, color='#ffffff')
+    plt.xticks(rotation=0, color='#9ca3af') 
+    plt.yticks(color='#9ca3af')
+    
+    ax.yaxis.set_major_locator(mticker.MaxNLocator(integer=True))
+    
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+    
+    ax.grid(axis='y', linestyle='--', alpha=0.1)
+
+    for bar in bars.patches:
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            bar.get_height() + 0.1,
+            int(bar.get_height()),
+            ha='center', va='bottom', color='white', fontweight='bold'
+        )
 
     buf = io.BytesIO()
-    plt.savefig(buf, format='png')
+    plt.savefig(buf, format='png', bbox_inches='tight', dpi=100)
     buf.seek(0)
     plt.close()
-
     return buf
 
 

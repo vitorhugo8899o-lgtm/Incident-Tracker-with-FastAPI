@@ -36,19 +36,12 @@ app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     TrustedHostMiddleware,
-    allowed_hosts=[
-        'localhost',
-        '127.0.0.1',
-        'http://127.0.0.1:5500',
-        'nginx',
-        'incident_tracker_proxy',
-        "test"
-    ],
+    allowed_hosts=["*"]
 )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=['*'],
+    allow_origins=['https://web-incident-tracker.vercel.app'],
     allow_credentials=True,
     allow_methods=['*'],
     allow_headers=['*'],

@@ -35,7 +35,8 @@ async def login_user(user: Form_data, db: DBSession, response: Response):
         value=token.access_token,
         max_age=60 * 60,
         httponly=True,
-        secure=False,
+        secure=True,
+        samesite="none",
     )
 
     response.set_cookie(
@@ -43,7 +44,8 @@ async def login_user(user: Form_data, db: DBSession, response: Response):
         value=info,
         max_age=60 * 60,
         httponly=False,
-        secure=False,
+        secure=True,
+        samesite="none"
     )
 
     response.headers['Cache-Control'] = 'no-store'

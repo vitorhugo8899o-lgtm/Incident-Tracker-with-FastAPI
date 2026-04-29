@@ -41,7 +41,9 @@ app.add_middleware(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=['https://web-incident-tracker-kxaekfljr-vitor-hugos-projects-411fbd87.vercel.app'],
+    allow_origins=[
+        "https://web-incident-tracker.vercel.app/",
+        'https://web-incident-tracker-kxaekfljr-vitor-hugos-projects-411fbd87.vercel.app',"https://web-incident-tracker-git-main-vitor-hugos-projects-411fbd87.vercel.app/"],
     allow_credentials=True,
     allow_methods=['*'],
     allow_headers=['*'],
